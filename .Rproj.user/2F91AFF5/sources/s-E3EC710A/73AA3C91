@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1572951543449.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4036004787",
+    "id" : "73AA3C91",
+    "lastKnownWriteTime" : 1564666267,
+    "last_content_update" : 1564666267,
+    "path" : "~/Documents/Promotion/Teaching/stats_TUM/datamanagement.Rmd",
+    "project_path" : "datamanagement.Rmd",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
