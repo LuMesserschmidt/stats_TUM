@@ -1,2 +1,2 @@
-# stats_TUM
-Statistics and R for TM students
+# RforISG
+R Intro for ISG - May/June 2019

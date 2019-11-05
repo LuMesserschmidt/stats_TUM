@@ -1,0 +1,48 @@
+name: my-website
+output:
+  html_document:
+    css: style.css
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    lib_dir: site_libs
+    self_contained: no
+output_dir: docs
+navbar:
+  title: R-Intro ISG
+  left:
+  - text: Introduction
+    href: index.html
+  - text: Objects and Data
+    href: objectsndata.html
+  - text: Data Management
+    href: datamanagement.html
+    menu:
+      - text: "Data Management Introduction"
+        href: datamanagement.html
+      - text: "Eurostat Example"
+        href: datamanagement_eurostat.html
+  - text: Data Viz
+    href: dataviz.html
+    menu:
+      - text: "Data Viz Introduction"
+        href: dataviz.html
+      - text: "Eurostat Example"
+        href: dataviz_eurostat.html
+      - text: "Map Example"
+        href: dataviz_map.html
+  - text: Other
+    href: other_regressions.html
+    menu:
+      - text: Regressions
+        href: other_regressions.html
+      - text: RMarkdown
+        href: other_rmarkdown.html
+      - text: Further Information
+        href: other_furtherinfo.html
+  - text: About
+    href: about.html
+
+
