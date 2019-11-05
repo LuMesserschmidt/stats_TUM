@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -87,7 +88,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -248,48 +248,9 @@ $(document).ready(function () {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = false;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -383,7 +344,7 @@ div.tocify {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">R-Intro ISG</a>
+      <a class="navbar-brand" href="index.html">R Course PhD</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -410,6 +371,36 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Descriptives and Bivariate
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="descriptives.html">Descriptive Stats</a>
+    </li>
+    <li>
+      <a href="bivariate.html">Bivariate Stats</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Regression
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="other_regressions.html">Regression</a>
+    </li>
+    <li>
+      <a href="other_outlier.html">Outlier Analysis</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Data Viz
      
     <span class="caret"></span>
@@ -423,24 +414,6 @@ div.tocify {
     </li>
     <li>
       <a href="dataviz_map.html">Map Example</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Other
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="other_regressions.html">Regressions</a>
-    </li>
-    <li>
-      <a href="other_rmarkdown.html">RMarkdown</a>
-    </li>
-    <li>
-      <a href="other_furtherinfo.html">Further Information</a>
     </li>
   </ul>
 </li>
@@ -464,12 +437,12 @@ div.tocify {
 </div>
 
 
-<p>Download the script <a href="https://raw.githubusercontent.com/BeSeLuFri/RforISG/master/Files/Course%20Scripts/objectsndata_clean.R">here</a>.</p>
-<p>Solutions can be downloaded <a href="https://raw.githubusercontent.com/BeSeLuFri/RforISG/master/Files/Course%20Scripts/objectsndata_solutions.R">here</a> - but try to solve everything without the solutions first!</p>
+<p>Download the script <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/Files/Course%20Scripts/objectsndata_clean.R">here</a>.</p>
+<p>Solutions can be downloaded <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/Files/Course%20Scripts/objectsndata_solutions.R">here</a> - but try to solve everything without the solutions first!</p>
 <hr />
 <div id="objects-in-r-basic-calculations" class="section level1">
 <h1><span class="header-section-number">1</span> Objects in R: Basic Calculations</h1>
-<p>We will most often want to store results of calculations to reuse them later. For this, we can work with basic objects. An object has a name and a content. We can freely choose the name of an object and give certain rules - they have to start with a letter and include only letters, numbers and some special characters (“.”, “_“,”-“). <strong>R is case sensitive so “x” and “X” are different object names</strong>.</p>
+<p>We will most often want to store results of calculations to reuse them later. For this, we can work with basic objects. An object has a name and a content. We can freely choose the name of an object and give certain rules - they have to start with a letter and include only letters, numbers and some special characters (“.”, &quot;_“,”-&quot;). <strong>R is case sensitive so “x” and “X” are different object names</strong>.</p>
 <p>The content of an object is assigned using “&lt;-” or “=” (for tidy readability, you should always use the former, though).</p>
 <p>In order to assign the value of 5 to an object with name x do</p>
 <pre class="r"><code>x &lt;- 5
@@ -782,6 +755,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
