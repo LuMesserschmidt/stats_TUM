@@ -11,7 +11,7 @@ output:
     self_contained: no
 output_dir: docs
 navbar:
-  title: R-Intro ISG
+  title: R Course PhD
   left:
   - text: Introduction
     href: index.html
@@ -24,6 +24,20 @@ navbar:
         href: datamanagement.html
       - text: "Eurostat Example"
         href: datamanagement_eurostat.html
+  - text: Descriptives and Bivariate
+    href: descriptives.html
+    menu:
+      - text: Descriptive Stats
+        href: descriptives.html
+      - text: Bivariate Stats
+        href: bivariate.html
+  - text: Regression
+    href: other_regressions.html
+    menu:
+      - text: Regression
+        href: other_regressions.html
+      - text: Outlier Analysis
+        href: other_outlier.html
   - text: Data Viz
     href: dataviz.html
     menu:
@@ -33,15 +47,6 @@ navbar:
         href: dataviz_eurostat.html
       - text: "Map Example"
         href: dataviz_map.html
-  - text: Other
-    href: other_regressions.html
-    menu:
-      - text: Regressions
-        href: other_regressions.html
-      - text: RMarkdown
-        href: other_rmarkdown.html
-      - text: Further Information
-        href: other_furtherinfo.html
   - text: About
     href: about.html
 

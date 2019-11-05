@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -87,7 +88,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -248,48 +248,9 @@ $(document).ready(function () {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = false;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -383,7 +344,7 @@ div.tocify {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">R-Intro ISG</a>
+      <a class="navbar-brand" href="index.html">R-Intro PhD</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -464,8 +425,8 @@ div.tocify {
 </div>
 
 
-<p>Download the script <a href="https://raw.githubusercontent.com/BeSeLuFri/RforISG/master/Files/Course%20Scripts/dataviz_map_clean.R">here</a></p>
-<p>Download the data <a href="https://raw.githubusercontent.com/BeSeLuFri/RforISG/master/data/eurostat_data.csv">here</a> (same data as on the <a href="https://beselufri.github.io/RforISG/dataviz_eurostat.html">DataViz Eurostat page</a>)</p>
+<p>Download the script <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/Files/Course%20Scripts/dataviz_map_clean.R">here</a></p>
+<p>Download the data <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/data/eurostat_data.csv">here</a> (same data as on the <a href="https://beselufri.github.io/RforISG/dataviz_eurostat.html">DataViz Eurostat page</a>)</p>
 <div id="intro" class="section level1">
 <h1><span class="header-section-number">1</span> Intro</h1>
 <p>Creating maps with ggplot is easy. You just have to supply longitudinal data as the x variable and latitudinal data as the y variable and additionally give a group variable (so that R knows, which rows are to be filled together).</p>
@@ -545,8 +506,14 @@ df2 &lt;- inner_join(data_b2, df, by=&quot;geo&quot;)</code></pre>
 new</code></pre>
 <p><img src="dataviz_map_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p>Again, we simply modify this chart. To zoom into the plot, we use the function <code>coord_map</code> which builds upon the mapproj package (which you have to install first).</p>
-<pre class="r"><code>library(mapproj)
-new2 &lt;- new+
+<pre class="r"><code>library(mapproj)</code></pre>
+<pre><code>## Loading required package: maps</code></pre>
+<pre><code>## 
+## Attaching package: &#39;maps&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     map</code></pre>
+<pre class="r"><code>new2 &lt;- new+
     theme(panel.grid.minor = element_line(colour = NA), 
         panel.background = element_rect(fill = NA, colour = NA),
         axis.text.x = element_blank(),
@@ -581,6 +548,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

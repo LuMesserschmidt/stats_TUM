@@ -1,0 +1,14 @@
+"0","```r
+eurost <- read_csv2(\"data/eurostat_data.csv\")
+
+eurost <- eurost %>%
+  filter(time == 2014)
+
+mpdta <- map_data(\"world\")
+
+eurost2 <-
+  inner_join(x = eurost,
+             y = mpdta,
+             by = c(\"geo_name\" = \"region\"))
+
+```"

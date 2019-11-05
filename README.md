@@ -1,2 +1,2 @@
-# RforISG
-R Intro for ISG - May/June 2019
+# R Intro TUM
+R Intro for PhD Students at the HfP - November 2019

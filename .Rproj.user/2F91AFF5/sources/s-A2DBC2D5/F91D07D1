@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1572960085592.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F91D07D1",
+    "lastKnownWriteTime" : 1572960426,
+    "last_content_update" : 1572960426884,
+    "path" : "~/Documents/Promotion/Teaching/stats_TUM/other_regressions.Rmd",
+    "project_path" : "other_regressions.Rmd",
+    "properties" : {
+        "cursorPosition" : "282,19",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 10,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
