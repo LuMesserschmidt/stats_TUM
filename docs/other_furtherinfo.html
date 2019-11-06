@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -25,7 +26,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
 <link href="site_libs/wordcloud2-0.0.1/wordcloud.css" rel="stylesheet" />
 <script src="site_libs/wordcloud2-0.0.1/wordcloud2-all.js"></script>
 <script src="site_libs/wordcloud2-0.0.1/hover.js"></script>
@@ -92,7 +93,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -253,48 +253,9 @@ $(document).ready(function () {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = false;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -388,7 +349,7 @@ div.tocify {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">R-Intro ISG</a>
+      <a class="navbar-brand" href="index.html">R Course PhD</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -415,6 +376,36 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Descriptives and Bivariate
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="descriptives.html">Descriptive Stats</a>
+    </li>
+    <li>
+      <a href="bivariate.html">Bivariate Stats</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Regression
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="other_regressions.html">Regression</a>
+    </li>
+    <li>
+      <a href="other_outlier.html">Outlier Analysis</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Data Viz
      
     <span class="caret"></span>
@@ -428,24 +419,6 @@ div.tocify {
     </li>
     <li>
       <a href="dataviz_map.html">Map Example</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Other
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="other_regressions.html">Regressions</a>
-    </li>
-    <li>
-      <a href="other_rmarkdown.html">RMarkdown</a>
-    </li>
-    <li>
-      <a href="other_furtherinfo.html">Further Information</a>
     </li>
   </ul>
 </li>
@@ -473,7 +446,7 @@ div.tocify {
 <div id="next-steps" class="section level1">
 <h1><span class="header-section-number">1</span> Next steps</h1>
 <p>Of course, this page provided only a glimpse into the basics of coding with R.</p>
-<p>Nevertheless, I am fairly confident that this page is a good basis for all standard data tasks (data management, visualizations, regressions) within ISG and that &gt;80% of all of those tasks are covered by the packages and functions which are on this page.</p>
+<p>Nevertheless, I am fairly confident that this page is a good basis for all standard data tasks (data management, visualizations, regressions) and that &gt;80% of all of those tasks are covered by the packages and functions which are on this page.</p>
 <p>There are seemingly endless possibilities to go on from here. To provide some orientation, this page lists a couple of (free online) resources (see below).</p>
 <div id="if-we-had-a-little-more-time" class="section level2">
 <h2><span class="header-section-number">1.1</span> If we had a little more time…</h2>
@@ -487,15 +460,21 @@ div.tocify {
 </div>
 <div id="a-glimpse-into-new-stuff" class="section level1">
 <h1><span class="header-section-number">2</span> A glimpse into new stuff</h1>
-<p>Something which might be of special interest to ISG - word clouds. Credits to Georg, who made this word cloud example based on the ISG staff pages.</p>
 <div class="fold s">
-<pre class="r"><code>library(&quot;tidyverse&quot;)
-library(&quot;rvest&quot;)
-library(&quot;tidytext&quot;)</code></pre>
-<pre><code>## Warning: package &#39;tidytext&#39; was built under R version 3.5.3</code></pre>
-<pre class="r"><code>library(&quot;SnowballC&quot;)
-library(&quot;wordcloud2&quot;)</code></pre>
-<pre><code>## Warning: package &#39;wordcloud2&#39; was built under R version 3.5.3</code></pre>
+<pre class="r"><code>library(&quot;tidyverse&quot;)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 3.4.2</code></pre>
+<pre><code>## Warning in as.POSIXlt.POSIXct(Sys.time()): unknown timezone &#39;zone/tz/2019c.
+## 1.0/zoneinfo/Europe/Berlin&#39;</code></pre>
+<pre><code>## Warning: package &#39;readr&#39; was built under R version 3.4.4</code></pre>
+<pre><code>## Warning: package &#39;purrr&#39; was built under R version 3.4.4</code></pre>
+<pre><code>## Warning: package &#39;stringr&#39; was built under R version 3.4.4</code></pre>
+<pre><code>## Warning: package &#39;forcats&#39; was built under R version 3.4.4</code></pre>
+<pre class="r"><code>library(&quot;rvest&quot;)
+library(&quot;tidytext&quot;)
+library(&quot;SnowballC&quot;)</code></pre>
+<pre><code>## Warning: package &#39;SnowballC&#39; was built under R version 3.4.4</code></pre>
+<pre class="r"><code>library(&quot;wordcloud2&quot;)</code></pre>
+<pre><code>## Warning: package &#39;wordcloud2&#39; was built under R version 3.4.3</code></pre>
 <pre class="r"><code># get list via https://www.xml-sitemaps.com/
 ma &lt;- c(&quot;jenny-bennett&quot;, 
         &quot;dr-dietrich-engels&quot;, 
@@ -560,8 +539,8 @@ wordcounts &lt;- token %&gt;%
 
 # generate wordcloud
 wordcloud2(wordcounts, shuffle = FALSE, color = &quot;blue&quot;) </code></pre>
-<div id="htmlwidget-986fdaf875b0590c6505" style="width:672px;height:480px;" class="wordcloud2 html-widget"></div>
-<script type="application/json" data-for="htmlwidget-986fdaf875b0590c6505">{"x":{"word":["Universität","ISG","Köln","Evaluation","Studium","Mitarbeiterin","Soziologie","ESF","Sozialforschung","Bereich","Berlin","Schwerpunkten","Forschungsinteressen","Mitarbeiter","Arbeitsmarkt","Bereichen","Europäischen","M.A","Diplom","Institut","Monitoring","Sozialwissenschaften","Dr","Duisburg","Essen","Maßnahmen","Sozialfonds","Rahmen","Volkswirtschaftslehre","Arbeits","Arbeitsmarktpolitik","Büro","Dissertation","Erstellung","Forschungsschwerpunkte","Göttingen","Hilfskraft","Kunze","Methoden","Operationellen","Potsdam","Programms","Sozialberichterstattung","Studiums","Arbeit","Arbeitsmarktforschung","Armuts","Aufgabenschwerpunkt","Bayern","Berliner","Europa","Europäische","Gerontologie","Jahr","Lehrstuhl","M.Sc","Menschen","Praktika","Schwerpunkt","Teilhabe","Thema","Ungleichheit","Wirtschaftsforschung","Wissensmanagement"],"freq":[36,34,22,18,18,16,14,12,12,11,11,11,10,9,8,8,8,8,7,7,7,7,6,6,6,6,6,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],"fontFamily":"Segoe UI","fontWeight":"bold","color":"blue","minSize":0,"weightFactor":5,"backgroundColor":"white","gridSize":0,"minRotation":-0.785398163397448,"maxRotation":0.785398163397448,"shuffle":false,"rotateRatio":0.4,"shape":"circle","ellipticity":0.65,"figBase64":null,"hover":null},"evals":[],"jsHooks":{"render":[{"code":"function(el,x){\n                        console.log(123);\n                        if(!iii){\n                          window.location.reload();\n                          iii = False;\n\n                        }\n  }","data":null}]}}</script>
+<div id="htmlwidget-4a9d59bf3c79c911638d" style="width:672px;height:480px;" class="wordcloud2 html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4a9d59bf3c79c911638d">{"x":{"word":["Universität","ISG","Köln","Evaluation","Studium","Mitarbeiterin","Soziologie","ESF","Sozialforschung","Bereich","Berlin","Schwerpunkten","Forschungsinteressen","Mitarbeiter","Arbeitsmarkt","Bereichen","Europäischen","M.A","Diplom","Institut","Monitoring","Sozialwissenschaften","Dr","Duisburg","Essen","Maßnahmen","Sozialfonds","Rahmen","Volkswirtschaftslehre","Arbeits","Arbeitsmarktpolitik","Büro","Dissertation","Erstellung","Forschungsschwerpunkte","Göttingen","Hilfskraft","Kunze","Methoden","Operationellen","Potsdam","Programms","Sozialberichterstattung","Studiums","Arbeit","Arbeitsmarktforschung","Armuts","Aufgabenschwerpunkt","Bayern","Berliner","Europa","Europäische","Gerontologie","Jahr","Lehrstuhl","M.Sc","Menschen","Praktika","Schwerpunkt","Teilhabe","Thema","Ungleichheit","Wirtschaftsforschung","Wissensmanagement"],"freq":[36,34,22,18,18,16,14,12,12,11,11,11,10,9,8,8,8,8,7,7,7,7,6,6,6,6,6,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],"fontFamily":"Segoe UI","fontWeight":"bold","color":"blue","minSize":0,"weightFactor":5,"backgroundColor":"white","gridSize":0,"minRotation":-0.785398163397448,"maxRotation":0.785398163397448,"shuffle":false,"rotateRatio":0.4,"shape":"circle","ellipticity":0.65,"figBase64":null,"hover":null},"evals":[],"jsHooks":{"render":[{"code":"function(el,x){\n                        console.log(123);\n                        if(!iii){\n                          window.location.reload();\n                          iii = False;\n\n                        }\n  }","data":null}]}}</script>
 </div>
 </div>
 <div id="important-resources" class="section level1">
@@ -612,7 +591,7 @@ wordcloud2(wordcounts, shuffle = FALSE, color = &quot;blue&quot;) </code></pre>
 <td>
 <a href="https://www.springer.com/de/book/9780387981413"><img border="0" alt="W3Schools" src="http://t1.gstatic.com/images?q=tbn:ANd9GcQNvhEpXp9OwvqVosEh-UecM3TNbhdb1eVZp3LywUcXGeVC3scQ" height="180" width="120" ></a>
 <td>
-<pre><code>&lt;td&gt;</code></pre>
+<td>
 <a href="https://socviz.co/"><img border="0" alt="W3Schools" src="https://images-na.ssl-images-amazon.com/images/I/410TgmQuARL._SX398_BO1,204,203,200_.jpg" height="180" width="120" ></a>
 <td>
 <td>
@@ -669,6 +648,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

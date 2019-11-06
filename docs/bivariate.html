@@ -508,11 +508,18 @@ X-squared = 56.831, df = 48, p-value = 0.1792</code></pre>
 <p>You can calculate the correlation between two variables specifically with the cor() command.</p>
 <pre class="r"><code>cor(data$cyl,data$mpg, use=&quot;complete.obs&quot;)
 
+[1] -0.852162
+
 
 # Get a subset of variables
 correlationsubset &lt;- data[c(&quot;mpg&quot;,&quot;cyl&quot;,&quot;hp&quot;)]
 # Get the correlation matrix
-cor(correlationsubset, use=&quot;complete.obs&quot;)</code></pre>
+cor(correlationsubset, use=&quot;complete.obs&quot;)
+
+           mpg        cyl         hp
+mpg  1.0000000 -0.8521620 -0.7761684
+cyl -0.8521620  1.0000000  0.8324475
+hp  -0.7761684  0.8324475  1.0000000</code></pre>
 <p>Here, you enter the two variables separately as separate arguments. In addition, note the complete.obs setting. Like the mean() and sd() functions from before, cor() by default does not omit missing data. You need to include use=“complete.obs” to make cor() omit missing data.</p>
 <p>To make a correlation matrix of several variables, the command is the same except instead of entering the variables separately, you create a subset of the variables, and just enter them all at once.</p>
 </div>
