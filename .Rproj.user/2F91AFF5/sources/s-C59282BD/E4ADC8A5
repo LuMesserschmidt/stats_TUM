@@ -1,24 +1,24 @@
 {
     "collab_server" : "",
     "contents" : "",
-    "created" : 1572961582479.000,
+    "created" : 1573031370166.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1874404595",
-    "id" : "15B5A6F0",
-    "lastKnownWriteTime" : 1572961683,
-    "last_content_update" : 1572961683886,
+    "hash" : "2034415882",
+    "id" : "E4ADC8A5",
+    "lastKnownWriteTime" : 1573032716,
+    "last_content_update" : 1573032716601,
     "path" : "~/Documents/Promotion/Teaching/stats_TUM/other_outlier.Rmd",
     "project_path" : "other_outlier.Rmd",
     "properties" : {
-        "cursorPosition" : "17,0",
-        "scrollLine" : "0"
+        "cursorPosition" : "108,0",
+        "scrollLine" : "86"
     },
     "read_only" : false,
     "read_only_alternatives" : [
     ],
-    "relative_order" : 12,
+    "relative_order" : 9,
     "source_on_save" : false,
     "source_window" : "",
     "type" : "r_markdown"

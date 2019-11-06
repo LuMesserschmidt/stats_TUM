@@ -26,10 +26,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
-<script src="site_libs/viz-0.3/viz.js"></script>
-<link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
-<script src="site_libs/grViz-binding-1.0.1/grViz.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -375,6 +371,21 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Descriptives and Bivariate
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="descriptives.html">Descriptive Stats</a>
+    </li>
+    <li>
+      <a href="bivariate.html">Bivariate Stats</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Regression
      
     <span class="caret"></span>
@@ -426,480 +437,77 @@ div.tocify {
 </div>
 
 
-<p>Download the script <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/Files/Course%20Scripts/other_regressions_clean.R">here</a>. There are no exercises so this script contains all necessary code already.</p>
-<p>Download the data <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/data/eurostat_data.csv">here</a> (same data as on the <a href="https://beselufri.github.io/RforISG/dataviz_eurostat.html">DataViz Eurostat page</a>)</p>
+<p>Download the script <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/Files/Course%20Scripts/other_outlier.R">here</a>. There are no exercises so this script contains all necessary code already.</p>
 <hr />
-<div id="tldr" class="section level1">
-<h1><span class="header-section-number">1</span> Tl;dr</h1>
-<p>This is how standard OLS regressions are done:</p>
-<pre class="r"><code>ols_object &lt;- lm(regressand ~ regressor1 + regressor2 + regressor3,
-                 data = data.frame)</code></pre>
-<p>This is how a (two-ways FE) panel regression is done</p>
-<pre class="r"><code>library(plm)
-panel_object &lt;-
-   plm(
-      regressand ~ regressor1 + regressor2 + regressor3,
-      index = c(&quot;unit&quot;, &quot;time&quot;),
-      model = &quot;within&quot;,
-      effect = &quot;twoways&quot;,
-      # for two-ways fixed effect regressions
-      data = data.frame
-   )</code></pre>
-<p>This is how you can get a summary of your regression:</p>
-<pre class="r"><code>summary(ols_object, panel_object)</code></pre>
-<p>This is a nicer way for getting a summary and exporting (journal style)</p>
-<pre class="r"><code>library(stargazer)
-stargazer(ols_object, panel_object,
-          type = &quot;html&quot;, # either html, latex, or text
-          out = &quot;output.html&quot;) # if a file should be produced</code></pre>
+<div id="why-outliers-treatment-is-important" class="section level1">
+<h1><span class="header-section-number">1</span> Why outliers treatment is important?</h1>
+<p>Because, it can drastically bias/change the fit estimates and predictions. Let me illustrate this using the cars dataset.</p>
+<p>To better understand the implications of outliers better, I am going to compare the fit of a simple linear regression model on cars dataset with and without outliers. In order to distinguish the effect clearly, I manually introduce extreme values to the original cars dataset. Then, I predict on both the datasets.</p>
+<div id="inject-some-outliers-to-our-data" class="section level2">
+<h2><span class="header-section-number">1.1</span> Inject some outliers to our data</h2>
+<pre class="r"><code>rm(list=ls())
+# Inject outliers into data.
+cars1 &lt;- cars[1:30, ]  # original data
+cars_outliers &lt;- data.frame(speed=c(19,19,20,20,20), dist=c(190, 186, 210, 220, 218))  # introduce outliers.
+cars2 &lt;- rbind(cars1, cars_outliers)  # data with outliers.</code></pre>
 </div>
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">2</span> Introduction</h1>
-<div id="workflow" class="section level2">
-<h2><span class="header-section-number">2.1</span> Workflow</h2>
-<pre><code>## Warning in as.POSIXlt.POSIXct(Sys.time()): unknown timezone &#39;zone/tz/2019c.
-## 1.0/zoneinfo/Europe/Berlin&#39;</code></pre>
-<div id="htmlwidget-da3eaf6c51387c3fe34e" style="width:800px;height:400px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-da3eaf6c51387c3fe34e">{"x":{"diagram":"digraph {\n\n  rankdir=LR\n\n  # a \"graph\" statement\n  node[shape = note margin=0.25]\n  graph [overlap = true, fontsize = 10]\n\n   formula [label = \"Model Formula\"]\n\n  node[shape = hexagon]\n    lm [label = \"Fit Model \\n lm()\"]\n  \n  node [shape = cylinder]\n    data [label = \"Data\"]\n    \n    out [label = \"lm - Output\"]\n    \n  node [shape = box]\n  \n    inspect [label = \"Inspect & Plot\"]\n    evaluate [label = \"Evaluate\"]\n    export [label = \"Display & Export\"]\n\n  data -> lm\n  formula -> lm\n  \n  lm -> out\n  \n  out -> evaluate\n  out -> inspect\n  out -> export\n\n\n  # several \"edge\" statements\n\n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
-<hr />
-</div>
-<div id="the-lm-function" class="section level2">
-<h2><span class="header-section-number">2.2</span> The <code>lm</code> Function</h2>
-<pre class="r"><code>lm(formula,
-   data,
-   subset,
-   na.action)</code></pre>
-<p><code>formula</code> - Specification of our regression model</p>
-<p><code>data</code> - The dataset containing the variables of the regression</p>
-<p><code>subset</code> - An option to subset the data</p>
-<p><code>na.action</code> - Option that specifies how to deal with missing values</p>
-<hr />
-</div>
-<div id="the-formula-argument" class="section level2">
-<h2><span class="header-section-number">2.3</span> The <code>formula</code> Argument</h2>
-<p>We can write our models using the following syntax:</p>
-<pre class="r"><code>model &lt;- formula(regressand ~ regressors)</code></pre>
-<p>Where <code>regressand</code> is just our dependent variable / response usually denoted by <span class="math inline">\(y\)</span> and <code>model</code> is our formula of independent variables / regressors, e.g.:</p>
-<pre class="r"><code>kicker_success_formula &lt;- formula(kicker_success ~ experience + training + luck)</code></pre>
-<hr />
-<p>We can construct formulas with the following syntax:</p>
-<ul>
-<li>Adding variables with <code>+</code></li>
-</ul>
-<pre class="r"><code>formula(y ~ a + b)</code></pre>
-<ul>
-<li>Interactions with <code>:</code></li>
-</ul>
-<pre class="r"><code>formula(y ~ a + b + a:b)</code></pre>
-<ul>
-<li>Crossing: <code>a * b</code> is equivalent to <code>a + b + a:b</code></li>
-</ul>
-<pre class="r"><code>formula(y ~ a + b + a:b) # and
-formula(y ~ a * b) # are equivalent</code></pre>
-<ul>
-<li>Transformations with <code>I()</code></li>
-</ul>
-<pre class="r"><code>formula(y ~ a + I(a ^ 2)) # quadratic term must be in I() to evaluate correctly
-formula(y ~ log(a)) # log can stay by itself</code></pre>
-<ul>
-<li>Include all variables in your data with <code>.</code></li>
-</ul>
-<pre class="r"><code>formula(y ~ .) # is equivalent to
-formula(y ~ a + b + ... + z) # for a dataset with variables from a to z</code></pre>
-<hr />
-</div>
-<div id="the-subset-argument" class="section level2">
-<h2><span class="header-section-number">2.4</span> The <code>subset</code> Argument</h2>
-<ul>
-<li>Sometimes, we want to run our model on a subset of our data (without changing the data themselves)</li>
-<li>We can specify subsets of certain variables as follows:</li>
-</ul>
-<pre class="r"><code>lm(formula,
-   data,
-   subset = age &lt; 30)</code></pre>
-<ul>
-<li>Connect multiple subset arguments with logical operators:</li>
-</ul>
-<pre class="r"><code>lm(formula,
-   data,
-   subset = age &lt; 30 &amp; height &gt; 180)</code></pre>
-<p>Note that although this works, a best practice is to subset your data prior to the estimation. By keeping these steps distinct, your code will be much easier for someone else to understand.</p>
-<hr />
-</div>
-<div id="the-na.action-argument" class="section level2">
-<h2><span class="header-section-number">2.5</span> The <code>na.action</code> Argument</h2>
-<p>If the data contains missing values, <code>lm</code> automatically deletes the whole observation.</p>
-<ul>
-<li>Specify <code>na.action = na.fail</code> if you want an error when the data contains missing values</li>
-</ul>
-<p>Again, it is a best practice to look for missing values in your data prior to the estimation to keep your code transparent.</p>
-<ul>
-<li>You can use the <code>missmap</code> function from the <code>Amelia</code> package to get a nice visualisation of missing values in your data</li>
-</ul>
-<hr />
-</div>
-<div id="example-call-of-lm-with-eurostat-data" class="section level2">
-<h2><span class="header-section-number">2.6</span> Example Call of <code>lm</code> with Eurostat Data</h2>
-<pre class="r"><code>eur_data &lt;- read.csv2(&quot;data/eurostat_data.csv&quot;)
+<div id="lets-plot-it" class="section level2">
+<h2><span class="header-section-number">1.2</span> Let´s Plot it</h2>
+<pre class="r"><code># Plot of data with outliers.
+par(mfrow=c(1, 2))
+plot(cars2$speed, cars2$dist, xlim=c(0, 28), ylim=c(0, 230), main=&quot;With Outliers&quot;, xlab=&quot;speed&quot;, ylab=&quot;dist&quot;, pch=&quot;*&quot;, col=&quot;red&quot;, cex=2)
+abline(lm(dist ~ speed, data=cars2), col=&quot;blue&quot;, lwd=3, lty=2)
 
-m1 &lt;-
-   formula(unemp_workagepop_t ~ gdp_gr + inv_per_empl + immigration_t,
-           subset = year == 2014)
-model &lt;- lm(formula = m1,
-            data = eur_data)</code></pre>
-<hr />
-</div>
-<div id="output-of-lm" class="section level2">
-<h2><span class="header-section-number">2.7</span> Output of <code>lm</code></h2>
-<p>The <code>lm</code> function returns a list. Relevant components of this list are:</p>
-<ul>
-<li><code>call</code> - the function call that generated the output</li>
-<li><code>coefficients</code> the OLS coefficients</li>
-<li><code>residuals</code></li>
-<li><code>fitted.values</code> The estimates for our dependent variable (unemployment)</li>
-<li><code>model</code> The model matrix used for estimation</li>
-</ul>
-<p>The full list of outputs can be looked up via</p>
-<ul>
-<li><code>?lm()</code></li>
-<li><code>str(model)</code> where model is our saved output from <code>lm</code></li>
-<li>the <code>$</code> operator and <code>tab</code>, e.g. <code>model$...</code></li>
-</ul>
-<p>Lets look up our coefficients <span class="math inline">\(\beta\)</span>, fitted values <span class="math inline">\(\hat{y}\)</span> and OLS residuals <span class="math inline">\(\varepsilon\)</span></p>
-<pre class="r"><code>model$coefficients</code></pre>
-<pre><code>##   (Intercept)        gdp_gr  inv_per_empl immigration_t 
-##  1.284087e+01 -1.636299e-01 -3.228256e-01 -2.266933e-06</code></pre>
-<pre class="r"><code>model$fitted.values[1:7] # first 7 fitted values</code></pre>
-<pre><code>##       14       15       16       17       18       19       20 
-## 7.844069 9.367108 8.414682 8.144617 8.612589 8.671478 8.847128</code></pre>
-<pre class="r"><code>model$residuals[1:7] # first 7 residuals</code></pre>
-<pre><code>##        14        15        16        17        18        19        20 
-## -3.644069 -3.967108 -3.514682 -3.544617 -3.712589 -3.271478 -3.147128</code></pre>
-<p>We can visualise the results very simply with <code>hist</code> or <code>plot</code>:</p>
-<pre class="r"><code>hist(model$residuals, breaks = 30)</code></pre>
-<p><img src="other_outlier_files/figure-html/unnamed-chunk-21-1.png" width="960" /></p>
-<pre class="r"><code>hist(model$fitted.values, breaks = 30)</code></pre>
-<p><img src="other_outlier_files/figure-html/unnamed-chunk-22-1.png" width="960" /></p>
-<hr />
-</div>
-<div id="output-of-lm-with-the-summary-function" class="section level2">
-<h2><span class="header-section-number">2.8</span> Output of <code>lm</code> with the <code>summary()</code> function</h2>
-<pre class="r"><code>summary(model)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = m1, data = eur_data)
-## 
-## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -6.446 -2.790 -1.099  1.529 16.458 
-## 
-## Coefficients:
-##                 Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)    1.284e+01  5.628e-01  22.815  &lt; 2e-16 ***
-## gdp_gr        -1.636e-01  7.869e-02  -2.080   0.0386 *  
-## inv_per_empl  -3.228e-01  5.039e-02  -6.406 7.91e-10 ***
-## immigration_t -2.267e-06  1.438e-06  -1.576   0.1164    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 4.386 on 238 degrees of freedom
-##   (671 observations deleted due to missingness)
-## Multiple R-squared:  0.1887, Adjusted R-squared:  0.1785 
-## F-statistic: 18.46 on 3 and 238 DF,  p-value: 8.453e-11</code></pre>
-<hr />
-</div>
-<div id="display-and-export-tables-with-stargazer" class="section level2">
-<h2><span class="header-section-number">2.9</span> Display and Export Tables with <code>stargazer()</code></h2>
-<pre class="r"><code>stargazer::stargazer(model, type = &quot;text&quot;)</code></pre>
-<pre><code>## 
-## ===============================================
-##                         Dependent variable:    
-##                     ---------------------------
-##                         unemp_workagepop_t     
-## -----------------------------------------------
-## gdp_gr                       -0.164**          
-##                               (0.079)          
-##                                                
-## inv_per_empl                 -0.323***         
-##                               (0.050)          
-##                                                
-## immigration_t                -0.00000          
-##                              (0.00000)         
-##                                                
-## Constant                     12.841***         
-##                               (0.563)          
-##                                                
-## -----------------------------------------------
-## Observations                    242            
-## R2                             0.189           
-## Adjusted R2                    0.179           
-## Residual Std. Error      4.386 (df = 238)      
-## F Statistic           18.457*** (df = 3; 238)  
-## ===============================================
-## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
-<p>Jake Russ has the <a href="https://www.jakeruss.com/cheatsheets/stargazer/">ultimate overview</a> over all <code>stargazer()</code> functions (there are many!!).</p>
-<hr />
-<div id="export-stargazer-output-to-file" class="section level3">
-<h3><span class="header-section-number">2.9.1</span> Export Stargazer Output to File</h3>
-<pre class="r"><code>stargazer::stargazer(model,
-                     type = &quot;html&quot;,
-                     out = &quot;model.html&quot;)</code></pre>
+# Plot of original data without outliers. Note the change in slope (angle) of best fit line.
+plot(cars1$speed, cars1$dist, xlim=c(0, 28), ylim=c(0, 230), main=&quot;Outliers removed \n A much better fit!&quot;, xlab=&quot;speed&quot;, ylab=&quot;dist&quot;, pch=&quot;*&quot;, col=&quot;red&quot;, cex=2)
+abline(lm(dist ~ speed, data=cars1), col=&quot;blue&quot;, lwd=3, lty=2)</code></pre>
+<p><img src="other_outlier_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
+<p>Notice the change in slope of the best fit line after removing the outliers. Had we used the outliers to train the model(left chart), our predictions would be exagerated (high error) for larger values of speed because of the larger slope.</p>
 <hr />
 </div>
 </div>
-<div id="compare-different-models" class="section level2">
-<h2><span class="header-section-number">2.10</span> Compare different Models</h2>
-<pre class="r"><code>model2 &lt;- lm(unemp_workagepop_t ~ gdp_gr,
-             data = eur_data)</code></pre>
-<pre class="r"><code>stargazer::stargazer(model, model2,
-                     type = &quot;html&quot;)</code></pre>
-<table style="text-align:center">
-<tr>
-<td colspan="3" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td colspan="2">
-<em>Dependent variable:</em>
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td colspan="2" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td colspan="2">
-unemp_workagepop_t
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(1)
-</td>
-<td>
-(2)
-</td>
-</tr>
-<tr>
-<td colspan="3" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-gdp_gr
-</td>
-<td>
--0.164<sup>**</sup>
-</td>
-<td>
--0.343<sup>***</sup>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(0.079)
-</td>
-<td>
-(0.065)
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-inv_per_empl
-</td>
-<td>
--0.323<sup>***</sup>
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(0.050)
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-immigration_t
-</td>
-<td>
--0.00000
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(0.00000)
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-Constant
-</td>
-<td>
-12.841<sup>***</sup>
-</td>
-<td>
-9.152<sup>***</sup>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(0.563)
-</td>
-<td>
-(0.258)
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td colspan="3" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-Observations
-</td>
-<td>
-242
-</td>
-<td>
-360
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-R<sup>2</sup>
-</td>
-<td>
-0.189
-</td>
-<td>
-0.071
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-Adjusted R<sup>2</sup>
-</td>
-<td>
-0.179
-</td>
-<td>
-0.069
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-Residual Std. Error
-</td>
-<td>
-4.386 (df = 238)
-</td>
-<td>
-4.423 (df = 358)
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-F Statistic
-</td>
-<td>
-18.457<sup>***</sup> (df = 3; 238)
-</td>
-<td>
-27.447<sup>***</sup> (df = 1; 358)
-</td>
-</tr>
-<tr>
-<td colspan="3" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-<em>Note:</em>
-</td>
-<td colspan="2" style="text-align:right">
-<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
-</td>
-</tr>
-</table>
-<p>Specify the folder and file were your table should be saved as <code>&quot;path/name.type&quot;</code></p>
-<ol style="list-style-type: decimal">
-<li>Output as <code>.html</code> : Open the file in your web browser and copy it into Word</li>
-<li>Output as <code>.tex</code> : Include in LaTeX</li>
-</ol>
-<hr />
+<div id="detect-outliers" class="section level1">
+<h1><span class="header-section-number">2</span> Detect Outliers</h1>
+<div id="univariate-approach" class="section level2">
+<h2><span class="header-section-number">2.1</span> Univariate Approach</h2>
+<p>For a given continuous variable, outliers are those observations that lie outside 1.5 * IQR, where IQR, the ‘Inter Quartile Range’ is the difference between 75th and 25th quartiles. Look at the points outside the whiskers in below box plot.</p>
+<pre class="r"><code>par(mfrow=c(1, 1))
+outlier_values &lt;- boxplot.stats(airquality$Ozone)  # outlier values.
+boxplot(airquality$Ozone, main=&quot;Ozone&quot;, boxwex=0.1)
+mtext(paste(&quot;Outliers: &quot;, paste(outlier_values, collapse=&quot;, &quot;)), cex=0.6)</code></pre>
+<p><img src="other_outlier_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
+</div>
+<div id="bivariate-approach" class="section level2">
+<h2><span class="header-section-number">2.2</span> Bivariate Approach</h2>
+<p>Visualize in box-plot of the X and Y, for categorical X’s</p>
+<pre class="r"><code>par(mfrow=c(1, 2))
+# For categorical variable
+boxplot(Ozone ~ Month, data=airquality, main=&quot;Ozone reading across months&quot;)  # clear pattern is noticeable.
+boxplot(Ozone ~ Day, data=airquality, main=&quot;Ozone reading for days of week&quot;)  # this may not be significant, as day of week variable is a subset of the month var.</code></pre>
+<p><img src="other_outlier_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<p>What is the inference? The change in the level of boxes suggests that Month seem to have an impact in ozone_reading while Day_of_week does not. Any outliers in respective categorical level show up as dots outside the whiskers of the boxplot.</p>
+<pre class="r"><code>par(mfrow=c(1, 2))
+# For continuous variable (convert to categorical if needed.)
+boxplot(Ozone ~ Solar.R, data=airquality, main=&quot;Boxplot for Solar (continous) vs Ozone&quot;)
+boxplot(Ozone ~ cut(Solar.R, pretty(airquality$Solar.R)), data=airquality, main=&quot;Boxplot for Solar (categorial) vs Ozone&quot;, cex.axis=0.5)</code></pre>
+<p><img src="other_outlier_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+</div>
+<div id="multivariate-approach" class="section level2">
+<h2><span class="header-section-number">2.3</span> Multivariate Approach</h2>
+<div id="cooks-distance" class="section level3">
+<h3><span class="header-section-number">2.3.1</span> Cook’s Distance</h3>
+<p>Cook’s distance is a measure computed with respect to a given regression model and therefore is impacted only by the X variables included in the model. But, what does cook’s distance mean? It computes the influence exerted by each data point (row) on the predicted outcome.</p>
+<p>The cook’s distance for each observation i measures the change in Ŷ (fitted Y) for all observations with and without the presence of observation i, so we know how much the observation i impacted the fitted values.</p>
+<pre class="r"><code>##Cooks distance
+mod &lt;- lm(Ozone ~ ., data=airquality)
+cooksd &lt;- cooks.distance(mod)
+
+plot(cooksd, pch=&quot;*&quot;, cex=2, main=&quot;Influential Obs by Cooks distance&quot;)  # plot cook&#39;s distance
+abline(h = 4*mean(cooksd, na.rm=T), col=&quot;red&quot;)  # add cutoff line
+text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd&gt;4*mean(cooksd, na.rm=T),names(cooksd),&quot;&quot;), col=&quot;red&quot;)  # add labels</code></pre>
+<p><img src="other_outlier_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
 </div>
 </div>
-<div id="panel-regression" class="section level1">
-<h1><span class="header-section-number">3</span> Panel Regression</h1>
-<p>Just a very quick glimpse into panel regressions with plm.</p>
-<pre class="r"><code>library(plm)
-panel_object &lt;- plm(
-   unemp_workagepop_t ~ gdp_gr,
-   data = eur_data,
-   index = c(&quot;geo_code&quot;, &quot;time&quot;),
-   model = &quot;within&quot;,
-   effect = &quot;twoways&quot;
-) # for two-ways fixed effect regressions</code></pre>
-<p>For further information on panel regressions, I recommend</p>
-<ul>
-<li>the <a href="https://www.princeton.edu/~otorres/Panel101R.pdf">slides</a> by Oscar Torres-Reyna</li>
-<li>the <a href="http://www.urfie.net/read/mobile/index.html#p=208">Chapter 13</a> from the Econometrics with R book</li>
-</ul>
 </div>
 
 

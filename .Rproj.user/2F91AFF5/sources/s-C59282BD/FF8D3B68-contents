@@ -1,0 +1,1091 @@
+# R-Skript Auswertung Bindungsqualität
+
+# Autor: Gabriela Jerome
+# Thema: Bachelorarbeit über das GEV-B
+rm(list=ls())
+
+# Packages----
+## Loading of packages
+
+library(plyr)  
+library(dplyr) 
+library(ggplot2) 
+library(ggiraph)
+library(stargazer) 
+library(foreign)
+library(stringr)
+library(ggthemes)
+library(car)
+library(ggExtra)
+library(dynlm)
+library(hrbrthemes)
+library(calibrate)
+library(ggrepel)
+library(extrafont)
+loadfonts(device="pdf")
+library(lubridate)
+library(ggalt)
+library(reshape2)
+library(mvinfluence)
+library(plotly)
+
+# Erstes Datenmanagement----
+#Einlesen der Daten 
+data = read.spss("Daten_Dezember2018.sav", to.data.frame=TRUE)
+
+#Alle abgebrochenen/ nicht abgeschlossenen (wegen Alter, Abbruch Kind etc.) Datenobservationen löschen --> N= 104 
+data<- data[data$Ausschluss=="Einschluss",]
+
+#Codebuch Vorlage
+attributes(data)$variable
+
+#Löschen von irrelevanten Variablen
+data1<-data[-c(1,2,5:12,15:23,33:38,41:51,53:56,58:61,63:66,68:82,84:88,90:97,99:103)]
+
+# Datenbereinigung (siehe Datenfragen an Professor)
+ # Fall 27 (Kitazeit 96 Monate) zu NA
+data1$Besuch_Kita[data1$Besuch_Kita==96] <-NA
+
+ # Einkommen = 0 wird zu NA (siehe Zeile ca. 150 zu Einkommen)
+
+# C_TRF_T_AP Wert von Fall 95 wird als NA angezeigt, ist aber 50: Abgeändert
+data1$C_TRF_T_AP[data1$C_TRF_AP==0 & data1$Alter==77] <-50
+
+#Benennung der wichtigen variablen
+names(data1)
+
+# Generelle Beschreibung der Daten: 
+describe(data1)
+
+##Aggressionsvariable: C_TRF_AP (T bedeutet hierbei standardisierung). Diese bringt uns aber nicht viel (siehe Verteilungsbehebung im Anhang)
+library(Hmisc)
+library(fitdistrplus)
+library(logspline)
+
+jpeg('Verteilungscheck_1.jpg',width = 800, height = 800)
+descdist(data1$C_TRF_T_AP, discrete = FALSE)
+dev.off()
+
+jpeg('Verteilungscheck_2.jpg',width = 800, height = 800)
+descdist(data1$C_TRF_AP, discrete = FALSE)
+dev.off()
+
+jpeg('Verteilungscheck_3.jpg',width = 800, height = 800)
+hist(data1$C_TRF_T_AP, freq = FALSE)
+lines(density(data1$C_TRF_T_AP))
+dev.off()
+jpeg('Verteilungscheck_4.jpg',width = 800, height = 800)
+hist(data1$C_TRF_AP, freq = FALSE)
+lines(density(data1$C_TRF_AP))
+dev.off()
+
+
+
+ 
+
+## Geschlecht (1 Weiblich | 0 Männlich)
+table(data1$Geschlecht)
+data1$Geschlecht <- ordered(data1$Geschlecht,
+                     levels = c("weiblich", "m\303\244nnlich"),
+                     labels = c(1, 0))
+
+## Alter (in Monaten) und noch 1 in Jahreskategorien
+table(data1$Alter_J)
+data1$Alter_J<- data1$Alter/12
+data1$Alter_J[data1$Alter_J<5] <-5
+data1$Alter_J[data1$Alter_J>5 & data1$Alter_J<6] <-6
+data1$Alter_J[data1$Alter_J>6] <-7
+
+## Geschwister: Variablen zusammenführen 
+ 
+table(data1$SES_Geschwister_aelter)
+data1$SES_G<- as.character(data1$SES_Geschwister_aelter)
+data1$SES_G<- as.numeric(data1$SES_G)
+data1$SES_G<- as.factor(data1$SES_G)
+data1$SES_G <- ordered(data1$SES_G,
+                      levels = c(-99,0,1,2,3),
+                      labels = c(NA,0,1,2,3))
+data1$SES_G<- as.character(data1$SES_G)
+
+data1$SES_G<- as.character(data1$SES_G)
+data1$SES_G[data1$SES_G=="NA"] <-"NA"
+data1$SES_G1<- as.numeric(data1$SES_G)
+
+data1$SES_Gj<- as.character(data1$SES_Geschwister_juenger)
+data1$SES_Gj<- as.numeric(data1$SES_Gj)
+data1$SES_Gj<- as.factor(data1$SES_Gj)
+data1$SES_Gj <- ordered(data1$SES_Gj,
+                       levels = c(-99,0,1,2,4),
+                       labels = c(NA,0,1,2,4))
+data1$SES_Gj<- as.character(data1$SES_Gj)
+data1$SES_Gj[data1$SES_Gj=="NA"] <-"NA"
+data1$SES_G2<- as.numeric(data1$SES_Gj)
+
+data1$Geschwister_2 <- rowMeans(data1[, c("SES_G1", "SES_G2")], na.rm=TRUE) 
+data1$Geschwister_4 <- rowSums(data1[, c("SES_G1", "SES_G2")], na.rm = TRUE)
+data1$Geschwister_4[data1$Geschwister_2=="NaN"]<- NA
+data1$Geschwister<- data1$Geschwister_4
+
+# Verlust (0=Nein | 1= Ja)
+
+table(data1$SES_Kind_Verlust)
+data1$SES_Verlust <- ordered(data1$SES_Kind_Verlust,
+                        levels = c("Nein","Ja (Bitte schildern Sie grob das Ereignis)"),
+                        labels = c(0,1))
+
+
+#  Trauma (0=Nein | 1= Ja)
+
+table(data1$SES_Kind_Trauma)
+data1$SES_Trauma <- ordered(data1$SES_Kind_Trauma,
+                             levels = c("Nein","Ja (Bitte schildern Sie grob das Ereignis)"),
+                             labels = c(0,1))
+
+
+# Einkommen (0=Not | 4= Ja, gut)
+
+table(data1$SES_Einkommen)
+data1$SES_Einkommen2 <- ordered(data1$SES_Einkommen,
+                             levels = c("0","Ja, gut","Gerade so","Es ist zu wenig", "Ich leide Not"),
+                             labels = c(NA,4,3,2,1))
+data1$Einkommen<- data1$SES_Einkommen2
+
+# Kombination GEV_B
+
+table(data1$GEV_B_1)
+
+data1$GEV_B <- ordered(data1$GEV_B_1,
+                                levels = c("kein A B C","A","B","C"),
+                                labels = c("D","A","B","C"))
+data1$GEV_B[data1$GEV_B_1=="C"& data1$GEV_B_2=="+D"]<- "D"
+data1$GEV_B<- as.character(data1$GEV_B)
+data1$GEV_B<- as.factor(data1$GEV_B)
+# Variablen Neubenennung
+data1$Nationalitaet<- data1$Nationalit.c3..a4.t
+data1$Foerderung<- data1$F.c3..b6.rderung
+
+
+# Getrenntlebende Eltern (NA=Keine Angabe, 0= zusammen, 1=getrennt)
+data1$Umgang2<- as.character(data1$SES_Umgang)
+data1$Umgang3<- as.numeric(data1$Umgang2)
+data1$Umgang3[data1$Alter==74 & data1$Besuch_Kita==24]<- 1
+data1$Umgang3[data1$Umgang3>=1]<- 1
+data1$Umgang3[data1$Umgang3<=0]<- 0
+data1$Trennung<- as.factor(data1$Umgang3)
+
+#log-transformation due to right-skewness (hierfür 0=1)
+
+data1$C_TRF_AP2<-data1$C_TRF_AP
+data1$C_TRF_AP2[data1$C_TRF_AP2==0] <-1
+data1$C_TRF_AP_log<-log(data1$C_TRF_AP2)
+
+jpeg('Verteilungscheck_5.jpg',width = 800, height = 800)
+descdist(data1$C_TRF_AP_log, discrete = FALSE)
+dev.off()
+
+jpeg('Verteilungscheck_6.jpg',width = 800, height = 800)
+hist(data1$C_TRF_AP_log, freq = FALSE)
+lines(density(data1$C_TRF_AP_log))
+dev.off()
+
+# Datensatz final bereinigen
+names(data1)
+
+df_main<-data1[-c(9,10,12,13,16:22,24:29,33,38,39,41)]
+
+names(df_main)
+
+save(df_main,file="df_main.Rda")
+
+ 
+#Deskriptive Analyse----
+rm(list = setdiff(ls(), lsf.str()))
+load("df_main.Rda")
+
+# Für manche Deskriptive Sachen nochmals Kerndatensatz laden 
+data = read.spss("Daten_Dezember2018.sav", to.data.frame=TRUE)
+
+#Alle abgebrochenen/ nicht abgeschlossenen (wegen Alter, Abbruch Kind etc.) Datenobservationen löschen --> N= 104 
+data<- data[data$Ausschluss=="Einschluss",]
+
+## Geschlecht (1 Weiblich | 0 Männlich)
+table(data$Geschlecht)
+data$Geschlecht <- ordered(data$Geschlecht,
+                            levels = c("weiblich", "m\303\244nnlich"),
+                            labels = c(1, 0))
+
+
+## Kontrollvariablen
+
+
+#Alter
+mean(df_main$Alter_J, na.rm=T) #6,26 Jahre
+
+jpeg('Altersverteilung.jpg',width = 800, height = 800)
+hist(df_main$Alter, main = paste("Altersverteilung der Studienteilnehmer*innen"),xlab="Alter (in Monaten)", ylab="Häufigkeit")#Bessere Grafik
+dev.off()
+
+#Geschlecht
+
+table(df_main$Geschlecht) 
+# 1  0 
+# 42 62 
+
+
+#Summary Statistics
+names(df_main)
+df_summary<-df_main[c("C_TRF_AP",	"Alter_J",	"Besuch_Kita","DESK_SZK","Geschwister", "Einkommen","SES_Trauma","SES_Verlust","Trennung")]
+df_summary$Einkommen<- as.numeric(df_summary$Einkommen)
+df_summary$Trauma<- as.numeric(df_summary$SES_Trauma)
+df_summary$Verlust<- as.numeric(df_summary$SES_Verlust)
+df_summary$Trennung<- as.numeric(df_summary$Trennung)
+
+
+df_summary$Trauma[df_summary$Trauma==1] <-0
+df_summary$Trauma[df_summary$Trauma==2] <-1
+df_summary$Verlust[df_summary$Verlust==1] <-0
+df_summary$Verlust[df_summary$Verlust==2] <-1
+
+df_summary2<-df_summary[-c(7,8)]
+
+stargazer(df_summary2, type = "html", title="Deskriptive Variablenanalyse", digits=1, out="summary_statistics.html",
+          covariate.labels=c("Aggression","Alter (in Jahren)","Besuchszeit Kindergarten (in Monaten)",
+                             "Sozialkompetenz (DESK)","Geschwister","Einkommenssituation",
+                             "Erlebtes Trauma","Erlebter Verlust", "Trennung der Eltern"))
+
+#Verteilung der Bindungsqualität nach Geschlecht
+mytable <- xtabs(~GEV_B+Geschlecht, data=df_main)
+ftable(mytable) 
+#Verteilung der Aggressivität in der Gesamtstichprobe
+
+table(df_main$C_TRF_AP)
+table(df_main$C_TRF_T_AP)
+#Auswertung Alter der Kinder (5, 6 und 7 Jahre) und Bindungsqualität
+mytable <- xtabs(~GEV_B+Alter_J, data=df_main)
+ftable(mytable) 
+#Wieviele Kinder leben mit beiden Elternteil im Haushalt /wieviele mit einem
+table(df_main$Trennung)
+#Wieviele Kinder haben wichtige Bezugsperson (Trennung, Scheidung, Tod) verloren
+table(df_main$SES_Verlust)
+table(df_main$SES_Trauma)
+mytable <- xtabs(~SES_Trauma+SES_Verlust+Trennung, data=df_main)
+ftable(mytable) 
+#Wieviele Kinder potentiell tramatische Erfahrungen 
+#s.o.
+
+#Durchschnittsalter der Kinder zum Zeitpunkt der außerhäuslichen Betreuung (Kita, Kiga, Großeltern)
+data$a<- as.character(data$SES_Kind_aushaeusig)
+data$b<- as.numeric(data$a)
+data$b[data$b==-99]<-NA
+data$c<-(data$b) / 12
+mean(data$c,na.rm=T)
+#Durchschnitt der wöchentlichen außerhäuslichen Betreuung (wieviele Stundne pro Woche im Kita)
+data$a<- as.character(data$SES_Kind_Betreuungsumfang)
+data$b<- as.numeric(data$a)
+data$b[data$b==-99]<-NA
+mean(data$b,na.rm=T)
+#Wieviele Kinder haben Geschwister
+table(df_main$Geschwister)
+#Wieviele Kinder haben deutsch als Muttersprache
+table(df_main$Muttersprache)
+#Wieviele Mütter haben  Deutsch als Muttersprache
+mytable <- xtabs(~SES_Muttersprache+SES_Verw, data=data)
+ftable(mytable) 
+#Höchster Bildungsabschluss der Mütter / Väter
+table(data$SES_Ausbildung)
+table(data$SES_Schule)
+
+table(data$SES_Partner_Ausbildung)
+table(data$SES_Partner_Schule)
+
+#Wieviele Mütter/Väter sind berufstätig. Wieviele davon ganztags
+
+table(data$SES_Erwerb)
+table(data$SES_Partner_Erwerb)
+#Verteilung der Einkommenssituation in der Gesatmstichprobe
+table(data$SES_Einkommen)
+
+# Verteilung Einkommen nach Bindungsqualität
+data$GEV_B<-df_main$GEV_B
+mytable <- xtabs(~SES_Einkommen+GEV_B, data=data)
+ftable(mytable) 
+## Analyse wichtiger Variablen (nach Alter, nach Geschlecht, nach GEV_B/C_TRF_AP, Einkommen, Nationalität)
+
+
+#C_TRF_AP
+
+
+a <- ggplot(df_main, aes(x = Geschlecht, y = C_TRF_AP) )+
+  geom_boxplot() +
+  scale_y_continuous(name = "Aggression") +
+  scale_x_discrete(name = "Geschlecht", labels=c("Frau","Mann")) +
+  theme_bw()
+
+b <- ggplot(df_main, aes(x = Alter_J1, y = C_TRF_AP) )+
+  geom_boxplot() +
+  scale_y_continuous(name = "Aggression") +
+  scale_x_discrete(name = "Alter (in Jahren)") +
+  theme_bw()
+
+
+c <- ggplot(df_main, aes(x = Nationalitaet, y = C_TRF_AP) )+
+  geom_boxplot() +
+  scale_y_continuous(name = "Aggression") +
+  scale_x_discrete(name = "Herkunft") +
+  theme_bw()
+
+d <- ggplot(df_main, aes(x = Einkommen, y = C_TRF_AP) )+
+  geom_boxplot() +
+  scale_y_continuous(name = "Aggression") +
+  scale_x_discrete(name = "Einkommen der Eltern", labels=c("Hoch","Mittel","Niedrig","NA")) +
+  theme_bw()
+
+f <- ggplot(df_main, aes(x = Trennung, y = C_TRF_AP) )+
+  geom_boxplot() +
+  scale_y_continuous(name = "Aggression") +
+  scale_x_discrete(name = "Trennung der Eltern") +
+  theme_bw()
+library(ggpubr)
+
+par(mfrow=c(1,1))
+jpeg('boxplot_aggr.jpg',width = 1000, height = 1400)
+
+
+e<- ggarrange(a, b,c,d,f + rremove("x.text"), 
+          labels = c("A", "B", "C", "D","E"),
+          ncol = 2, nrow = 3)
+annotate_figure(e,
+                top = text_grob("Boxplot des Aggressionsindikators", color = "black", face = "bold", size = 15)
+)
+dev.off()
+
+# GEV_B 
+
+boxplot <- ggplot(df_main, aes(x = GEV_B, y = C_TRF_AP) )+
+  geom_boxplot() +
+  scale_y_continuous(name = "C_TRF_AP") +
+  scale_x_discrete(name = "GEV_B") +
+  ggtitle("Boxplot der Aggression verschiedener Bindungstypen") +
+  theme_bw()
+
+ggsave(filename="boxplot.jpeg",
+       plot=boxplot,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+ 
+
+table(df_main$Geschlecht) 
+
+
+#Zusammenhangsanalyse----
+
+df_reg<- df_main
+df_reg$Einkommen_num<- as.numeric(df_reg$Einkommen)
+df_reg$Trauma_num<- as.numeric(df_reg$SES_Trauma)
+df_reg$Verlust_num<- as.numeric(df_reg$SES_Verlust)
+
+df_reg$Trauma_num[df_reg$Trauma_num==1] <-0
+df_reg$Trauma_num[df_reg$Trauma_num==2] <-1
+df_reg$Verlust_num[df_reg$Verlust_num==1] <-0
+df_reg$Verlust_num[df_reg$Verlust_num==2] <-1
+
+# Auch mal B vs ACD (B=0, ACD=1)
+
+df_reg$GEV_B2<- as.character(df_reg$GEV_B)
+df_reg$GEV_B2[df_reg$GEV_B2=="A" | df_reg$GEV_B2=="C" | df_reg$GEV_B2=="D"] <-"ACD"
+df_reg$GEV_B2<- as.factor(df_reg$GEV_B2)
+
+df_reg$GEV_B3 <- ordered(df_reg$GEV_B2,
+                             levels = c("B","ACD"),
+                             labels = c(0,1))
+#H1: Unterschiede im aggressiven Verhalten von Kindern stehen in 
+#Abhängigkeit zu ihrer Bindungsrepräsentation (A/B/C/D), wobei sicher 
+#gebundene Kinder das geringste Problemverhalten aufweisen. 
+
+library(psych)
+
+
+a<- describeBy( df_reg$C_TRF_AP,df_reg$GEV_B, mat=TRUE)
+library(openxlsx)
+write.xlsx (x = as.data.frame(a), file = "Deskriptive Variablenanalyse.xlsx")
+model <- aov(C_TRF_AP~ GEV_B, data = df_reg)
+
+levels(df_reg$GEV_B)
+
+c1 <- c(-1, 1,0 ,0) # B vs. A
+c2 <- c(0, 1,-1 ,0) # B vs. C
+c3 <- c(0, 1,0 ,-1) # B vs. D
+c4 <- c(-1, 4,-1 ,-1) # B vs. ACD
+c5 <- c(1, 0,-1 ,0) # A vs. C
+c6 <- c(1, 0,0 ,-1) # A vs. D
+c7 <- c(0, 0,1 ,-1) # C vs. D
+
+mat1 <- cbind(c1,c2,c3,c4,c5,c6,c7)
+mat2 <- cbind(c6,c7,c5)
+
+contrasts(df_reg$GEV_B) <- mat1
+
+model1 <- aov(C_TRF_AP~ GEV_B, data = df_reg)
+model2 <- aov(C_TRF_AP~ GEV_B3, data = df_reg)
+
+summary.aov(model1, split=list(GEV_B=list("B vs A"=1, "B vs C" = 2, "B vs D"=3)))
+summary.aov(model2)
+
+contrasts(df_reg$GEV_B) <- mat2
+
+model1 <- aov(C_TRF_AP~ GEV_B, data = df_reg)
+model2 <- aov(C_TRF_AP~ GEV_B3, data = df_reg)
+
+summary.aov(model1, split=list(GEV_B=list("A vs D"=1, "C vs D" = 2, "A vs C"=3)))
+summary.aov(model2)
+
+# Tukey HSD (Tukey Honest Significant Differences) erlaubt es uns, herasuzufinden, welche einzelnen Unterschiede die Gruppen vorbringen
+TUKEY<- TukeyHSD(model1)
+
+# Tuckey test representation :
+par(mfrow=c(1,1))
+jpeg('Tukey_Kontrastanalyse.jpg',width = 800, height = 800 )
+plot(TUKEY , las=1 , col="black")
+dev.off()
+
+etaSquared( model2, type = 2, anova = T)
+etaSquared( model1, type = 2, anova = T)
+
+library(sjstats)
+
+anova_stats(model1)
+anova_stats(model2)
+
+
+# Check ANOVA Annahmen:Normalverteilung, Homogenität, Test Validität
+
+plot(model1, 1) #--> Fall 42, 40, 3 als outlier
+
+#levene Test: Homogenitätstest
+
+leveneTest(C_TRF_AP~ GEV_B, data = df_reg)
+
+# Normal distribution?
+
+plot(model1, 2)
+# Problem: Keine Normalverteilung: hierbei die Problematik der geringen Datenlage...
+
+# Deswegen Shapiro-Wilk Test
+
+# Residuen extrahieren
+aov_residuals <- residuals(object = model1 )
+#Shapiro-Wilk test
+shapiro.test(x = aov_residuals )
+
+
+#H2: Hohe Ausprägung im Sozialverhalten (DESK) ist korreliert mit aggressivem Problemverhalten (CTR-F)
+
+H2<- ggplot(data=df_main, aes(x=C_TRF_AP, y=DESK_SZK, fill=GEV_B))+
+  geom_point(col="grey")+ geom_smooth(method="lm", col="grey")+
+  ggtitle("Linearer Zusammenhang der DESK und C_TRF Variablen")+
+  ylab("Aggressivität")+
+  xlab("Sozialkompetenz")+  
+  theme_bw()
+
+ggsave(filename="H2_Regression.jpeg",
+       plot=H2,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+
+cor.test(df_reg$C_TRF_AP,df_reg$DESK_SZK) #-0.6552299 
+
+table(df_reg$Geschlecht)
+
+# H3: Das Geschlecht moderiert die Ausprägung des aggressiven Problemverhaltens----
+
+df_reg_w <- df_reg[df_reg$Geschlecht==1,]
+df_reg_m <- df_reg[df_reg$Geschlecht==0,]
+ ## H 3 Mädchen----
+a<- describeBy( df_reg_w$C_TRF_AP,df_reg_w$GEV_B, mat=TRUE)
+library(openxlsx)
+write.xlsx (x = as.data.frame(a), file = "Deskriptive Variablenanalyse_w.xlsx")
+model <- aov(C_TRF_AP~ GEV_B, data = df_reg_w)
+
+levels(df_reg_w$GEV_B)
+
+c1 <- c(-1, 1,0 ,0) # B vs. A
+c2 <- c(0, 1,-1 ,0) # B vs. C
+c3 <- c(0, 1,0 ,-1) # B vs. D
+c4 <- c(-1, 4,-1 ,-1) # B vs. ACD
+c5 <- c(1, 0,-1 ,0) # A vs. C
+c6 <- c(1, 0,0 ,-1) # A vs. D
+c7 <- c(0, 0,1 ,-1) # C vs. D
+
+mat1 <- cbind(c1,c2,c3,c4,c5,c6,c7)
+mat2 <- cbind(c5,c6,c7)
+
+
+contrasts(df_reg_w$GEV_B) <- mat1
+
+model1 <- aov(C_TRF_AP~ GEV_B, data = df_reg_w)
+
+summary.aov(model1, split=list(GEV_B=list("B vs A"=1, "B vs C" = 2, "B vs D"=3
+                                          , "B vs ACD"=4, "A vs C"=5, "A vs D"=6
+                                          , "C vs D"=7)))
+
+# Tukey HSD (Tukey Honest Significant Differences) erlaubt es uns, herasuzufinden, welche einzelnen Unterschiede die Gruppen vorbringen
+TUKEY<- TukeyHSD(model1)
+
+# Tukey test :
+par(mfrow=c(1,1))
+jpeg('Tukey_Kontrastanalyse_w.jpg',width = 800, height = 800 )
+plot(TUKEY , las=1 , col="black")
+dev.off()
+
+
+ ## H 3 Jungen----
+
+a<- describeBy( df_reg_m$C_TRF_AP,df_reg_m$GEV_B, mat=TRUE)
+library(openxlsx)
+write.xlsx (x = as.data.frame(a), file = "Deskriptive Variablenanalyse_m.xlsx")
+model <- aov(C_TRF_AP~ GEV_B, data = df_reg_m)
+
+levels(df_reg_m$GEV_B)
+
+c1 <- c(-1, 1,0 ,0) # B vs. A
+c2 <- c(0, 1,-1 ,0) # B vs. C
+c3 <- c(0, 1,0 ,-1) # B vs. D
+c4 <- c(-1, 4,-1 ,-1) # B vs. ACD
+c5 <- c(1, 0,-1 ,0) # A vs. C
+c6 <- c(1, 0,0 ,-1) # A vs. D
+c7 <- c(0, 0,1 ,-1) # C vs. D
+
+mat1 <- cbind(c1,c2,c3,c4,c5,c6,c7)
+mat2 <- cbind(c5,c6,c7)
+
+
+contrasts(df_reg_m$GEV_B) <- mat1
+
+model1 <- aov(C_TRF_AP~ GEV_B, data = df_reg_m)
+
+summary.aov(model1, split=list(GEV_B=list("B vs A"=1, "B vs C" = 2, "B vs D"=3
+                                          , "B vs ACD"=4, "A vs C"=5, "A vs D"=6
+                                          , "C vs D"=7)))
+
+# Tukey HSD (Tukey Honest Significant Differences) erlaubt es uns, herasuzufinden, welche einzelnen Unterschiede die Gruppen vorbringen
+TUKEY<- TukeyHSD(model1)
+
+# Tuckey test representation :
+par(mfrow=c(1,1))
+jpeg('Tukey_Kontrastanalyse_m.jpg',width = 800, height = 800 )
+plot(TUKEY , las=1 , col="black")
+dev.off()
+
+names(df_reg)
+#Einfache Regression von Aggression auf Aggression ---- 
+
+
+
+
+names(df_reg)
+
+lm3<- lm(C_TRF_AP~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache + factor(Trennung), data= df_reg)
+lm2<- lm(C_TRF_AP~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + factor(Trennung), data= df_reg)
+lm1<- lm(C_TRF_AP~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + factor(Trennung), data= df_reg)
+
+
+lm3a<- lm(C_TRF_AP~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache + factor(Trennung)+ I(Geschlecht:GEV_B), data= df_reg)
+lm2a<- lm(C_TRF_AP~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + factor(Trennung)+ I(Geschlecht:GEV_B), data= df_reg)
+lm1a<- lm(C_TRF_AP~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + factor(Trennung)+ I(Geschlecht:GEV_B), data= df_reg)
+
+
+
+lm3l<- lm(C_TRF_AP_log~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache + factor(Trennung), data= df_reg)
+lm2l<- lm(C_TRF_AP_log~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + factor(Trennung), data= df_reg)
+lm1l<- lm(C_TRF_AP_log~ factor(GEV_B)+ Geschlecht + Alter+  Geschwister + Einkommen_num + factor(Trennung), data= df_reg)
+
+summary(lm1)
+#Einfache und Multiple Regression (nach Geschlecht)
+lm4.1<- lm(C_TRF_AP~ factor(GEV_B)+ Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache+factor(Trennung) , data= df_reg[df_reg$Geschlecht==0,])
+lm4.2<- lm(C_TRF_AP~ factor(GEV_B)+ Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache+factor(Trennung), data= df_reg[df_reg$Geschlecht==1,])
+
+lm4.1l<- lm(C_TRF_AP_log~ factor(GEV_B)+ Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache+factor(Trennung) , data= df_reg[df_reg$Geschlecht==0,])
+lm4.2l<- lm(C_TRF_AP_log~ factor(GEV_B)+ Alter+  Geschwister + Einkommen_num + SES_Verlust + SES_Trauma + Besuch_Kita + Muttersprache+factor(Trennung), data= df_reg[df_reg$Geschlecht==1,])
+
+library(QuantPsyc)
+lm.beta(lm1)
+lm.beta(lm2)
+lm.beta(lm3)
+lm.beta(lm1a)
+lm.beta(lm2a)
+lm.beta(lm3a)
+lm.beta(lm1l)
+lm.beta(lm2l)
+lm.beta(lm3l)
+lm.beta(lm4.1)
+lm.beta(lm4.2)
+lm.beta(lm4.1l)
+lm.beta(lm4.2l)
+
+#Delta R
+library(rockchalk)
+getDeltaRsquare(lm1)
+
+# Koeffizienten Plot Geschlecht
+model1 <- lm4.1
+model2 <- lm4.2
+
+summary(model1)
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Mann")
+
+
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "Frau")
+
+
+
+
+allModelFrame <- data.frame(rbind(model1Frame, model2Frame)) 
+
+allModelFrame$Geschlecht <- allModelFrame$modelName
+allModelFrame$Variable <- as.character(allModelFrame$Variable)
+allModelFrame$Variable[allModelFrame$Variable=="SES_Verlust.L"] <- "Verlusterlebnis"
+allModelFrame$Variable[allModelFrame$Variable=="SES_Trauma.L"] <- "Traumatisches Erlebnis"
+allModelFrame$Variable[allModelFrame$Variable=="Mutterspracheandere"] <- "Andere Muttersprache"
+allModelFrame$Variable[allModelFrame$Variable=="factor(GEV_B)C"] <- "Bindungstyp C"
+allModelFrame$Variable[allModelFrame$Variable=="factor(GEV_B)B"] <- "Bindungstyp B"
+allModelFrame$Variable[allModelFrame$Variable=="factor(GEV_B)D"] <- "Bindungstyp D"
+allModelFrame$Variable[allModelFrame$Variable=="(Intercept)"] <- "Konstante (Bindungstyp A)"
+allModelFrame$Variable[allModelFrame$Variable=="Besuch_Kita"] <- "Kitabesuch"
+allModelFrame$Variable[allModelFrame$Variable=="Einkommen_num"] <- "Einkommen"
+allModelFrame$Variable[allModelFrame$Variable=="factor(Trennung)1"] <- "Trennung"
+
+
+allModelFrame$Variable <- as.factor(allModelFrame$Variable)
+
+interval1 <- -qnorm((1-0.9)/2) 
+interval2 <- -qnorm((1-0.95)/2)  
+
+# Plot
+a <- ggplot(allModelFrame, aes(colour = Geschlecht))+  scale_color_manual(values=c("dodgerblue", "green3"))
+a <- a + geom_hline(yintercept = 0, colour = gray(1/2), lty = 2)
+a <- a + geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                            ymax = Coefficient + SE*interval1),
+                        lwd = 1, position = position_dodge(width = 1/2))
+a <- a + geom_pointrange(aes(x = Variable, y = Coefficient, ymin = Coefficient - SE*interval2,
+                             ymax = Coefficient + SE*interval2),
+                         lwd = 1/2, position = position_dodge(width = 1/2),
+                         shape = 21, fill = "WHITE")
+a <- a + coord_flip() + theme_bw()
+a <- a + ggtitle("Koeffizienten Plot nach Geschlecht")
+
+ggsave(filename="Koeffizientenplot(Geschlecht).jpeg",
+       plot=a,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+
+# Multikollinearitätstest durch den VIF (Variance Inflation) Test
+
+vif(lm3) 
+
+summary(lm3)
+#Finale Regression ----
+
+
+stargazer(lm1, lm2, lm3, type="html",order=c(13,1:12), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression1.html"
+)
+
+
+stargazer(lm4.1, lm4.2, type="html",order=c(12,1:11), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz nach Geschlecht",
+          dep.var.labels = c("Aggression (nach CTRF)"), column.labels = c("Mann", "Frau"),
+          out="Final_Regression_geschlecht.html"
+)
+
+
+#log
+stargazer(lm1l, lm2l, lm3l, type="html",order=c(13,1:12), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression2.html"
+)
+
+
+stargazer(lm4.1l, lm4.2l, type="html",order=c(12,1:11), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz nach Geschlecht",
+          dep.var.labels = c("Aggression (nach CTRF)"), column.labels = c("Mann", "Frau"),
+          out="Final_Regression_geschlecht2.html"
+)
+
+# Mit Interaktionseffekten für H3
+
+stargazer(lm1a, lm2a, lm3a, type="html",order=c(20,1:19), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung",
+                               "Interaktion (Frau:B)",
+                               "Interaktion (Frau:C)",
+                               "Interaktion (Frau:D)"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression3.html"
+)
+
+
+#Für P-Werte
+
+
+stargazer(lm1, lm2, lm3, type="html",order=c(13,1:12), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*p"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression1_p.html"
+)
+
+
+stargazer(lm4.1, lm4.2, type="html",order=c(12,1:11), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*p"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz nach Geschlecht",
+          dep.var.labels = c("Aggression (nach CTRF)"), column.labels = c("Mann", "Frau"),
+          out="Final_Regression_geschlecht_p.html"
+)
+
+
+#log
+stargazer(lm1l, lm2l, lm3l, type="html",order=c(13,1:12), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*p"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression2_p.html"
+)
+
+
+stargazer(lm4.1l, lm4.2l, type="html",order=c(12,1:11), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*p"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz nach Geschlecht",
+          dep.var.labels = c("Aggression (nach CTRF)"), column.labels = c("Mann", "Frau"),
+          out="Final_Regression_geschlecht2_p.html"
+)
+
+# Mit Interaktionseffekten für H3
+
+stargazer(lm1a, lm2a, lm3a, type="html",order=c(20,1:19), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung",
+                               "Interaktion (Frau:B)",
+                               "Interaktion (Frau:C)",
+                               "Interaktion (Frau:D)"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*p"),
+          style = "commadefault", se = NULL ,ci = TRUE,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression3_p.html"
+)
+
+
+#Für SE-Werte
+
+
+stargazer(lm1, lm2, lm3, type="html",order=c(13,1:12), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression1_s.html"
+)
+
+
+stargazer(lm4.1, lm4.2, type="html",order=c(12,1:11), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz nach Geschlecht",
+          dep.var.labels = c("Aggression (nach CTRF)"), column.labels = c("Mann", "Frau"),
+          out="Final_Regression_geschlecht_s.html"
+)
+
+
+#log
+stargazer(lm1l, lm2l, lm3l, type="html",order=c(13,1:12), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression2_s.html"
+)
+
+
+stargazer(lm4.1l, lm4.2l, type="html",order=c(12,1:11), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz nach Geschlecht",
+          dep.var.labels = c("Aggression (nach CTRF)"), column.labels = c("Mann", "Frau"),
+          out="Final_Regression_geschlecht2_s.html"
+)
+
+# Mit Interaktionseffekten für H3
+
+stargazer(lm1a, lm2a, lm3a, type="html",order=c(20,1:19), 
+          covariate.labels = c("Konstante (Bindungstyp A)",
+                               "Bindungstyp B",
+                               "Bindungstyp C",
+                               "Bindungstyp D",
+                               "Geschlecht",
+                               "Alter",
+                               "Geschwister",
+                               "Einkommen",
+                               "Verlusterlebnis",
+                               "Traumaerlebnis",
+                               "Kitabesuch",
+                               "Andere Muttersprache",
+                               "Trennung",
+                               "Interaktion (Frau:B)",
+                               "Interaktion (Frau:C)",
+                               "Interaktion (Frau:D)"
+          ),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          report = c("vc*s"),
+          style = "commadefault", se = NULL ,
+          dep.var.caption = "Multiple Regression der Aggressionstendenz",
+          dep.var.labels = c("Aggression (nach CTRF)"),
+          out="Final_Regression3_s.html"
+)
+
+
+#Power Analysis ----
+library(pwr)
+#Gegebenes N
+pwr.anova.test(k = 4, n=104, sig.level =.05  , power =.8 ) 
+
+# Kleines F (wenn also der Unterschied zwischen den Gruppen gering ist)
+pwr.anova.test(k = 4, f=.10, sig.level =.05  , power =.8 )
+# Medium F
+pwr.anova.test(k = 4, f=.25, sig.level =.05  , power =.8 )
+# Großes F  
+pwr.anova.test(k = 4, f=.80, sig.level =.05  , power =.8 )
+
+

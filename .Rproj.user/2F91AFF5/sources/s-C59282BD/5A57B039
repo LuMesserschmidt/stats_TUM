@@ -1,24 +1,24 @@
 {
     "collab_server" : "",
     "contents" : "",
-    "created" : 1572960083820.000,
+    "created" : 1573028659230.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3397205425",
-    "id" : "389664AD",
+    "hash" : "0",
+    "id" : "5A57B039",
     "lastKnownWriteTime" : 1572960274,
-    "last_content_update" : 1572960274930,
+    "last_content_update" : 1572960274,
     "path" : "~/Documents/Promotion/Teaching/stats_TUM/objectsndata.Rmd",
     "project_path" : "objectsndata.Rmd",
     "properties" : {
-        "cursorPosition" : "411,0",
-        "scrollLine" : "0"
+        "cursorPosition" : "28,0",
+        "scrollLine" : "16"
     },
     "read_only" : false,
     "read_only_alternatives" : [
     ],
-    "relative_order" : 8,
+    "relative_order" : 4,
     "source_on_save" : false,
     "source_window" : "",
     "type" : "r_markdown"

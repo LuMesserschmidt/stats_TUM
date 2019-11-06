@@ -7,11 +7,12 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
 
-<title>Regressions</title>
+<title>Outlier</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -25,7 +26,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
 <script src="site_libs/viz-0.3/viz.js"></script>
 <link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="site_libs/grViz-binding-1.0.1/grViz.js"></script>
@@ -91,7 +92,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -252,48 +252,9 @@ $(document).ready(function () {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = false;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -387,7 +348,7 @@ div.tocify {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">R-Intro ISG</a>
+      <a class="navbar-brand" href="index.html">R Course PhD</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -414,6 +375,36 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Descriptives and Bivariate
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="descriptives.html">Descriptive Stats</a>
+    </li>
+    <li>
+      <a href="bivariate.html">Bivariate Stats</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Regression
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="other_regressions.html">Regression</a>
+    </li>
+    <li>
+      <a href="other_outlier.html">Outlier Analysis</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Data Viz
      
     <span class="caret"></span>
@@ -427,24 +418,6 @@ div.tocify {
     </li>
     <li>
       <a href="dataviz_map.html">Map Example</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Other
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="other_regressions.html">Regressions</a>
-    </li>
-    <li>
-      <a href="other_rmarkdown.html">RMarkdown</a>
-    </li>
-    <li>
-      <a href="other_furtherinfo.html">Further Information</a>
     </li>
   </ul>
 </li>
@@ -463,13 +436,13 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Regressions</h1>
+<h1 class="title toc-ignore">Outlier</h1>
 
 </div>
 
 
-<p>Download the script <a href="https://raw.githubusercontent.com/BeSeLuFri/RforISG/master/Files/Course%20Scripts/other_regressions_clean.R">here</a>. There are no exercises so this script contains all necessary code already.</p>
-<p>Download the data <a href="https://raw.githubusercontent.com/BeSeLuFri/RforISG/master/data/eurostat_data.csv">here</a> (same data as on the <a href="https://beselufri.github.io/RforISG/dataviz_eurostat.html">DataViz Eurostat page</a>)</p>
+<p>Download the script <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/Files/Course%20Scripts/other_regressions_clean.R">here</a>. There are no exercises so this script contains all necessary code already.</p>
+<p>Download the data <a href="https://raw.githubusercontent.com/LuMesserschmidt/stats_TUM/master/data/eurostat_data.csv">here</a> (same data as on the <a href="https://beselufri.github.io/RforISG/dataviz_eurostat.html">DataViz Eurostat page</a>)</p>
 <hr />
 <div id="tldr" class="section level1">
 <h1><span class="header-section-number">1</span> Tl;dr</h1>
@@ -499,8 +472,10 @@ stargazer(ols_object, panel_object,
 <h1><span class="header-section-number">2</span> Introduction</h1>
 <div id="workflow" class="section level2">
 <h2><span class="header-section-number">2.1</span> Workflow</h2>
-<div id="htmlwidget-6c7e8c95a9c2affa3990" style="width:800px;height:400px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-6c7e8c95a9c2affa3990">{"x":{"diagram":"digraph {\n\n  rankdir=LR\n\n  # a \"graph\" statement\n  node[shape = note margin=0.25]\n  graph [overlap = true, fontsize = 10]\n\n   formula [label = \"Model Formula\"]\n\n  node[shape = hexagon]\n    lm [label = \"Fit Model \\n lm()\"]\n  \n  node [shape = cylinder]\n    data [label = \"Data\"]\n    \n    out [label = \"lm - Output\"]\n    \n  node [shape = box]\n  \n    inspect [label = \"Inspect & Plot\"]\n    evaluate [label = \"Evaluate\"]\n    export [label = \"Display & Export\"]\n\n  data -> lm\n  formula -> lm\n  \n  lm -> out\n  \n  out -> evaluate\n  out -> inspect\n  out -> export\n\n\n  # several \"edge\" statements\n\n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<pre><code>## Warning in as.POSIXlt.POSIXct(Sys.time()): unknown timezone &#39;zone/tz/2019c.
+## 1.0/zoneinfo/Europe/Berlin&#39;</code></pre>
+<div id="htmlwidget-e1ed41d8352524bc1d0a" style="width:800px;height:400px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e1ed41d8352524bc1d0a">{"x":{"diagram":"digraph {\n\n  rankdir=LR\n\n  # a \"graph\" statement\n  node[shape = note margin=0.25]\n  graph [overlap = true, fontsize = 10]\n\n   formula [label = \"Model Formula\"]\n\n  node[shape = hexagon]\n    lm [label = \"Fit Model \\n lm()\"]\n  \n  node [shape = cylinder]\n    data [label = \"Data\"]\n    \n    out [label = \"lm - Output\"]\n    \n  node [shape = box]\n  \n    inspect [label = \"Inspect & Plot\"]\n    evaluate [label = \"Evaluate\"]\n    export [label = \"Display & Export\"]\n\n  data -> lm\n  formula -> lm\n  \n  lm -> out\n  \n  out -> evaluate\n  out -> inspect\n  out -> export\n\n\n  # several \"edge\" statements\n\n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <hr />
 </div>
 <div id="the-lm-function" class="section level2">
@@ -927,14 +902,8 @@ F Statistic
 <div id="panel-regression" class="section level1">
 <h1><span class="header-section-number">3</span> Panel Regression</h1>
 <p>Just a very quick glimpse into panel regressions with plm.</p>
-<pre class="r"><code>library(plm)</code></pre>
-<pre><code>## Loading required package: Formula</code></pre>
-<pre><code>## 
-## Attaching package: &#39;plm&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
-## 
-##     between, lag, lead</code></pre>
-<pre class="r"><code>panel_object &lt;- plm(
+<pre class="r"><code>library(plm)
+panel_object &lt;- plm(
    unemp_workagepop_t ~ gdp_gr,
    data = eur_data,
    index = c(&quot;geo_code&quot;, &quot;time&quot;),
@@ -966,6 +935,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
