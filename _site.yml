@@ -24,6 +24,8 @@ navbar:
         href: datamanagement.html
       - text: "Eurostat Example"
         href: datamanagement_eurostat.html
+      - text: "Data Examples"
+        href: datamanagement_others.html
   - text: Descriptives and Bivariate
     href: descriptives.html
     menu:
