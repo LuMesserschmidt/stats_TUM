@@ -81,7 +81,7 @@ All three datasets should be stored in the datafile. As learned, we now want to 
 
 ## Immigration
 + Subset the data to only get these participants with an age over 23
-+ Table the ethnocentrism scale
++ Table the ethnocentrism scale (variable ethno)
 
 ## Aiddata
 + Subset the data to get all aid in 2013
