@@ -14,63 +14,6 @@ library(ggiraph)
 
 load("data/immigration.Rdata")
 
-
-
-
-mat1 <- model.matrix( ~ choice  +  Geschlecht + Heimatland + 
-                        Deutschkenntnisse +
-                       lfdn,data = econ) # Hinter der Tilde alle Variablen, die Du auch aggregieren willst + die ID variable. Bei data den jeweiligen Conjointdatensatz wählen.
-
-agg_mat1 <- aggregate(mat1,list(mat1[,"lfdn"]),FUN = mean) # Diesen Datensatz kannst Du über left_join() oder merge() mit den restlichen Befragtenvariablen zusammenspielen.
-
-df_main <- merge(count_econ,agg_mat1,by="lfdn")
-
-
-#Datamange df_main
-
-df_main$deutschkenntnisse<- 1 - df_main$Deutschkenntnissekeine
-
-df_main$heimatlandimmi <- (df_main$HeimatlandItalien + df_main$HeimatlandPolen + df_main$HeimatlandTürkei)
-
-df_main$heimatlandflucht <- df_main$HeimatlandIrak
-
-#Nationalität als Interaktionsfaktor: 2 Modelle: A mit eEInteilung, b mit einzelnen Interaktions-Nationalitäten 
-
-df_main <- df_main[ -c(27:29, 37:38) ]
-
-df_main <- merge(df_main,count_niqab,by="lfdn")
-
-
-rm(agg_mat1)
-rm(count_econ)
-rm(econ)
-rm(mat1)
-rm(count_niqab)
-
-'sample teilen (median split): ethnozentrismus und nicht ethnozentrismus 
-
-
-ethnozentrismus und Nationalität als Interaktionseffekt
-
-warum ethnozentrismus effekt auf flucht?
-
-- kulturelle unterschiede zwischen personen 
-- hainmüller#: ethnozentrismus einziger i-effekt 2 sample nach ethno teilen 
-
-#Arbeiten nur mit dem Econ Modell 
-I-Effekte hinsichtlich Nationalität 
--Sample Splitting (Median modell) von Ethnozentrismus und Vergleiche der Effekte (Einfach mittels binary variable)'
-
-
-
-# H1: Sinkender Ethnozentrismus hat einen Positiven Einfluss auf die Acceptance Rate
-
-
-
-# Nur in Diskusionsteil H3: Ethnozentrismus besitzt einen stärkeren Effekt bezüglich der Akkzeptanz von geflüchteten Menschen 
-
-
-
 #Description of Datasample
 
 #Age
@@ -123,14 +66,13 @@ summary(df_main$pid)/425
 
 # Acceptance Rate 
 
+df_main$accepted <- df_main$accepted_e
+
 mean(df_main$accepted, na.rm=T)
 
 hist(df_main$accepted, breaks=10)
 
 boxplot(df_main$accepted)
-
-ggplot(data=df_main, aes(x=age, y=accepted))+
-  geom_line()
 
 summary(df_main$accepted)
 
@@ -674,51 +616,4 @@ stargazer(lm4.1,lm5.1, lm6.1, lm4.3, lm5.3, lm6.3, lm7.1, lm8.1, lm9.1, type="ht
           dep.var.labels = c("Immigrations-Experiment", "Flucht-Experiment"), out="all_reg.html"
 )
 
-
-
-
-
-
-
-
-'To DO: 
-
-
-Fahrplan:
-
-DONE  Deskriptiv: 
-
-      Datasample: 
-      Edu, sex, Age, Historgram, pid
-
-
-DONE  Analyse DV: 
-
-      1)Acceptance Rate
-
-      mean()
-      -Mean
-      -Soziodemo (Age, Sex, Edu)
-
-2) 
-
-Analyse Primär IV´s:
-
-DONE  Ethnocentrism 
-      -Descriptive: Age, East, Sex 
-
-      -Bivariate Analysis to DV´s (Plot)
-
-
-
-
-Inference Statistics 
-
-DONE - Multivariate Regression (DV: acceptance)
- 
-  
-
-Test Statistics: 
-
-- Difference between niqab & Econ (Coefficient regresso)'
 
